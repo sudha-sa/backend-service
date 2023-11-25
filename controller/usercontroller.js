@@ -1,6 +1,5 @@
 const usermodel =require("../models/userschema");
 const newslettermodel =require("../models/newsletter");
-const bcrypt =require("bcrypt")
 exports.register =async(req,res)=>{
     console.log(req.body)
     const { firstname, lastname, phone, email,password } = req.body;
@@ -8,9 +7,8 @@ exports.register =async(req,res)=>{
       return res.status(200).send({ msg: "Pls filled all given field" });
     }
 try {
-    const hashedPassword = await bcrypt.hash(password, 10);
     const userdata = await usermodel.create({
-        firstname,lastname,phone,email,password:hashedPassword
+        firstname,lastname,phone,email,password
     })
     return res.status(200).send({msg:"user register succesfully",userdata});
     
@@ -27,16 +25,10 @@ exports.login =async(req,res)=>{
     try {
       const isuser = await usermodel.findOne({email});
       if(isuser){ 
-        const ismatch = await bcrypt.compare(password,isuser.password);
-        if(ismatch){
             return res.status(200).send({msg:"login succesfully",isuser});
         }
         else{
             return res.status(400).send({msg:"login failed error"});
-        }
-      }
-      else{
-        return res.status(400).send({msg:"user does not exist"});
       }
     }catch(e){
          return res.status(500).send(e.message)
@@ -51,8 +43,7 @@ exports.forgotpassword =async(req,res)=>{
     }
     const isuserexist = await usermodel.findOne({email})
     if(isuserexist){
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const passwordupdate = await usermodel.findOneAndUpdate({email},{password:hashedPassword},{new:true});
+      const passwordupdate = await usermodel.findOneAndUpdate({email},{password},{new:true});
       return res.status(200).send({msg:"password updated succesfully"});
     }
     else{
